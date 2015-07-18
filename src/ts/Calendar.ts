@@ -7,6 +7,73 @@ declare var WinJS: any;
 module VC.UI.Calendar {
     "use strict";
 
+    class PointerPanManager {
+
+        private _targetElem: HTMLElement;
+        private _targetScrollableView: ScrollableViewManager;
+
+        private _lastUpdate: number;
+        private _lastSpeed: number; // [px / ms]
+
+        private _animationRequestId: number = undefined;
+
+        constructor(targetElem: HTMLElement, targetScrollableView: ScrollableViewManager) {
+            this._targetElem = targetElem;
+            this._targetScrollableView = targetScrollableView;
+        }
+
+        private _animate = () => {
+            var t = Date.now();
+            var deltaT = t - this._lastUpdate;
+            var deltaY = this._lastSpeed * deltaT;
+            this._targetScrollableView.top += deltaY;
+
+            var sign = this._lastSpeed > 0;
+            var speed = this._lastSpeed + (sign ? -1 : 1) * 0.0625;
+            if ((speed > 0) === sign) {
+                this._lastSpeed = speed;
+                this._lastUpdate = t;
+                this._animationRequestId = requestAnimationFrame(this._animate);
+            }
+        };
+
+        startHandlingPanGesture(): void {
+            this._targetElem.addEventListener("pointerdown",(evt) => {
+                if (this._animationRequestId !== undefined) {
+                    cancelAnimationFrame(this._animationRequestId);
+                    this._animationRequestId = undefined;
+                }
+
+                var initialY = evt.screenY;
+                var prevY = initialY;
+                var prevTime = Date.now();
+                var lastSpeed = 0;
+                var onPointerMove = (evt: PointerEvent) => {
+                    console.log("move");
+                    var y = evt.screenY;
+                    var t = Date.now();
+                    var deltaY = y - prevY;
+                    var deltaT = t - prevTime;
+                    this._targetScrollableView.top += deltaY;
+                    lastSpeed = deltaY / deltaT; // [px / ms]
+                    prevY = y;
+                    prevTime = t;
+                };
+                var onPointerUp = (evt: PointerEvent) => {
+                    window.removeEventListener("pointermove", onPointerMove);
+                    window.removeEventListener("pointerup", onPointerUp);
+
+                    this._lastSpeed = lastSpeed;
+                    this._lastUpdate = prevTime;
+                    requestAnimationFrame(this._animate);
+                };
+                window.addEventListener("pointermove", onPointerMove);
+                window.addEventListener("pointerup", onPointerUp);
+            });
+        }
+
+    }
+
     interface Month {
         year: number;
         month: number;
@@ -286,6 +353,8 @@ module VC.UI.Calendar {
                 this._updateScrollableViewPosition(delta * 30);
             }, false);
             this._scrollableViewManager = new ScrollableViewManager(height);
+            var pointerPanManager = new PointerPanManager(scrollWindowElem, this._scrollableViewManager);
+            pointerPanManager.startHandlingPanGesture();
             this.element.appendChild(scrollWindowElem);
             scrollWindowElem.appendChild(this._scrollableViewManager.element);
 
