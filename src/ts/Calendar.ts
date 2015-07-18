@@ -117,13 +117,21 @@ module VC.UI.Calendar {
                 this.currentMonthView.element.classList.remove("vc-active");
                 this.currentMonthView = currentMonthView;
                 this.currentMonthView.element.classList.add("vc-active");
-                // dispatch event;
+                if (this._onCurrentMonthViewChangeListner) {
+                    this._onCurrentMonthViewChangeListner(this);
+                }
             }
             // Update DOM.
             this.element.style.top = this._top + "px";
         }
         private _monthes: MonthView[];
         currentMonthView: MonthView;
+
+        private _onCurrentMonthViewChangeListner: (target: ScrollableViewManager) => void;
+
+        setOnCurrentMonthViewChangeListner(listener: (target: ScrollableViewManager) => void): void {
+            this._onCurrentMonthViewChangeListner = listener;
+        }
 
         constructor(visibleHeight: number) {
             this.element = document.createElement("div");
@@ -145,10 +153,14 @@ module VC.UI.Calendar {
 
         initialize(month: Month): void {
             var monthView = new MonthView(month);
-            this.currentMonthView = monthView;
-            this.currentMonthView.element.classList.add("vc-active");
             this.pushMonthView(monthView);
             this._addOrRemoveMonthesIfNecessary();
+
+            this.currentMonthView = monthView;
+            this.currentMonthView.element.classList.add("vc-active");
+            if (this._onCurrentMonthViewChangeListner) {
+                this._onCurrentMonthViewChangeListner(this);
+            }
         }
 
         unshiftMonthView(addedMonthView: MonthView): void {
@@ -258,19 +270,29 @@ module VC.UI.Calendar {
             var height = 300;
             this.element = elem || document.createElement("div");
             this.element.style.width = "210px";
-            this.element.style.height = height + "px";
             this.element.style.border = "solid 1px black";
             this.element.style.backgroundColor = "rgba(100, 100, 100, 0.5)";
-            this.element.style.overflow = "hidden";
-            this.element.style.position = "relative";
+
+            var titleElem = document.createElement("div");
+            this.element.appendChild(titleElem);
+
+            var scrollWindowElem = document.createElement("div");
+            scrollWindowElem.style.height = height + "px";
+            scrollWindowElem.style.overflow = "hidden";
+            scrollWindowElem.style.position = "relative";
             this.element.addEventListener("mousewheel", (evt) => {
                 var delta = Math.max(-1, Math.min(1,(evt.wheelDelta || -evt.detail)));
                 console.log(delta);
                 this._updateScrollableViewPosition(delta * 30);
             }, false);
-
             this._scrollableViewManager = new ScrollableViewManager(height);
-            this.element.appendChild(this._scrollableViewManager.element);
+            this.element.appendChild(scrollWindowElem);
+            scrollWindowElem.appendChild(this._scrollableViewManager.element);
+
+            this._scrollableViewManager.setOnCurrentMonthViewChangeListner((target) => {
+                var m = target.currentMonthView.month;
+                titleElem.textContent = m.year + "-" + m.month;
+            });
 
             this._currentMonth = { year: 2015, month: 7 };
 
