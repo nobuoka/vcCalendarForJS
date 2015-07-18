@@ -92,6 +92,7 @@ module VC.UI.Calendar {
             }
 
             this.heightForNextMonth = 60 * row;
+            this.fullHeight = this.heightForNextMonth + (col !== 0 ? 60 : 0);
             this.element.appendChild(f);
         }
     }
@@ -108,8 +109,8 @@ module VC.UI.Calendar {
             this._top = val;
             this._addOrRemoveMonthesIfNecessary();
             var currentMonthView = this._monthes.reduce((p, c) => {
-                var pv = Math.abs(this._visibleHeight - (this._top + p.top + p.heightForNextMonth));
-                var cv = Math.abs(this._visibleHeight - (this._top + c.top + c.heightForNextMonth));
+                var pv = Math.abs(this._visibleHeight / 2 - (this._top + p.top + p.fullHeight / 2));
+                var cv = Math.abs(this._visibleHeight / 2 - (this._top + c.top + c.fullHeight / 2));
                 return pv < cv ? p : c;
             });
             if (currentMonthView !== this.currentMonthView) {
