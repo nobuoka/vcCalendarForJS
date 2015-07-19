@@ -166,6 +166,9 @@ module VC.UI.Calendar {
         fullHeight: number;
         element: HTMLElement;
 
+        private _cellHeight = 48;
+        private _cellWidth = 48;
+
         constructor(m: Month) {
             var elem = document.createElement("div");
             elem.style.position = "relative";
@@ -191,11 +194,18 @@ module VC.UI.Calendar {
             var row = 0;
             var col = firstDay;
             for (var d = 1; d <= lastDate; d++) {
-                var e = document.createElement("span");
+                var e = document.createElement("div");
                 e.style.position = "absolute";
-                e.style.top = (60 * row) + "px";
-                e.style.left = (30 * col) + "px";
-                e.textContent = String(d);
+                e.classList.add("vc-day-container");
+                e.style.top = (this._cellHeight * row) + "px";
+                e.style.left = (this._cellWidth * col) + "px";
+                e.style.width = this._cellWidth + "px";
+                e.style.height = this._cellHeight + "px";
+                var e2 = document.createElement("span");
+                e2.classList.add("vc-day");
+                e2.textContent = String(d);
+
+                e.appendChild(e2);
                 f.appendChild(e);
 
                 col++;
@@ -205,8 +215,8 @@ module VC.UI.Calendar {
                 }
             }
 
-            this.heightForNextMonth = 60 * row;
-            this.fullHeight = this.heightForNextMonth + (col !== 0 ? 60 : 0);
+            this.heightForNextMonth = this._cellHeight * row;
+            this.fullHeight = this.heightForNextMonth + (col !== 0 ? this._cellHeight : 0);
             this.element.appendChild(f);
         }
     }
@@ -383,7 +393,7 @@ module VC.UI.Calendar {
         constructor(elem: HTMLElement) {
             var height = 300;
             this.element = elem || document.createElement("div");
-            this.element.style.width = "210px";
+            this.element.style.width = "350px";
             this.element.style.border = "solid 1px black";
             this.element.style.backgroundColor = "rgba(100, 100, 100, 0.5)";
 
