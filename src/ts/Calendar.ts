@@ -7,6 +7,41 @@ declare var WinJS: any;
 module VC.UI.Calendar {
     "use strict";
 
+    interface PointLogItem {
+        position: number;
+        time: number;
+    }
+
+    class VelocityTracker {
+        pointLog: PointLogItem[] = [];
+
+        addPoint(logItem: PointLogItem) {
+            this.pointLog.push(logItem);
+        }
+
+        calcVelocity(): number {
+            if (this.pointLog.length < 2) return 0;
+
+            var reversed = this.pointLog.reverse();
+            var lastTime = reversed[0].time;
+            var deltaT: number;
+            var deltaPos: number;
+            for (var i = 1; i < reversed.length; i++) {
+                if (lastTime - reversed[i].time < 100) {
+                    deltaT = lastTime - reversed[i].time;
+                    deltaPos = reversed[0].position - reversed[i].position;
+                } else {
+                    break;
+                }
+            }
+            if (deltaPos) {
+                return deltaPos / deltaT;
+            } else {
+                return 0;
+            }
+        }
+    }
+
     class PointerPanManager {
 
         private _targetElem: HTMLElement;
@@ -23,13 +58,17 @@ module VC.UI.Calendar {
         }
 
         private _animate = () => {
+            if (typeof this._lastSpeed !== "number") {
+                return; // Do nothing.
+            }
+
             var t = Date.now();
             var deltaT = t - this._lastUpdate;
             var deltaY = this._lastSpeed * deltaT;
             this._targetScrollableView.top += deltaY;
 
             var sign = this._lastSpeed > 0;
-            var speed = this._lastSpeed + (sign ? -1 : 1) * 0.0625;
+            var speed = this._lastSpeed + (sign ? -1 : 1) * 0.03125;
             if ((speed > 0) === sign) {
                 this._lastSpeed = speed;
                 this._lastUpdate = t;
@@ -44,18 +83,23 @@ module VC.UI.Calendar {
                     this._animationRequestId = undefined;
                 }
 
+                var tracker = new VelocityTracker();
+
                 var initialY = evt.screenY;
                 var prevY = initialY;
                 var prevTime = Date.now();
-                var lastSpeed = 0;
+                tracker.addPoint({
+                    position: initialY,
+                    time: Date.now(),
+                });
                 var onPointerMove = (evt: PointerEvent) => {
                     console.log("move");
                     var y = evt.screenY;
                     var t = Date.now();
+                    tracker.addPoint({ position: y, time: t });
                     var deltaY = y - prevY;
                     var deltaT = t - prevTime;
                     this._targetScrollableView.top += deltaY;
-                    lastSpeed = deltaY / deltaT; // [px / ms]
                     prevY = y;
                     prevTime = t;
                 };
@@ -63,7 +107,10 @@ module VC.UI.Calendar {
                     window.removeEventListener("pointermove", onPointerMove);
                     window.removeEventListener("pointerup", onPointerUp);
 
-                    this._lastSpeed = lastSpeed;
+                    var y = evt.screenY;
+                    var t = Date.now();
+                    tracker.addPoint({ position: y, time: t });
+                    this._lastSpeed = tracker.calcVelocity();
                     this._lastUpdate = prevTime;
                     requestAnimationFrame(this._animate);
                 };
