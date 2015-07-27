@@ -424,7 +424,8 @@ module VC.UI.Calendar {
                 titleElem.textContent = dateTimeFormatter.format(date);
             });
 
-            this._currentMonth = { year: 2015, month: 7 };
+            let today = new Date();
+            this._currentMonth = { year: today.getFullYear(), month: today.getMonth() + 1 };
 
             this._scrollableViewManager.initialize(this._currentMonth);
         }
