@@ -1,0 +1,24 @@
+.vc-calendar-month-year {
+    margin: 8px;
+    font-weight: bold;
+    font-size: large;
+}
+.vc-month {
+    color: gainsboro;
+}
+.vc-month.vc-active {
+    color: white;
+    font-weight: bold;
+}
+.vc-day-container {
+    display: -ms-grid;
+    -ms-grid-rows: 1fr;
+    -ms-grid-columns: 1fr;
+}
+.vc-day {
+    display: block;
+    -ms-grid-row: 1;
+    -ms-grid-column: 1;
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
+}

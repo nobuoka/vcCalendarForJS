@@ -399,6 +399,7 @@ module VC.UI.Calendar {
             this.element.style.backgroundColor = "rgba(100, 100, 100, 0.5)";
 
             var titleElem = document.createElement("div");
+            titleElem.classList.add("vc-calendar-month-year");
             this.element.appendChild(titleElem);
 
             var scrollWindowElem = document.createElement("div");
