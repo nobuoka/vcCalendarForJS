@@ -420,7 +420,7 @@ module VC.UI.Calendar {
             var dateTimeFormatter = new Windows.Globalization.DateTimeFormatting.DateTimeFormatter("month year");
             this._scrollableViewManager.setOnCurrentMonthViewChangeListner((target) => {
                 var m = target.currentMonthView.month;
-                var date = new Date(m.year, m.month);
+                var date = createDate(m);
                 titleElem.textContent = dateTimeFormatter.format(date);
             });
 
