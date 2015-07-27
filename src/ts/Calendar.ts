@@ -2,6 +2,7 @@
 Copylight 2015 NOBUOKA Yu
 */
 
+declare var Windows: any;
 declare var WinJS: any;
 
 module VC.UI.Calendar {
@@ -415,9 +416,11 @@ module VC.UI.Calendar {
             this.element.appendChild(scrollWindowElem);
             scrollWindowElem.appendChild(this._scrollableViewManager.element);
 
+            var dateTimeFormatter = new Windows.Globalization.DateTimeFormatting.DateTimeFormatter("month year");
             this._scrollableViewManager.setOnCurrentMonthViewChangeListner((target) => {
                 var m = target.currentMonthView.month;
-                titleElem.textContent = m.year + "-" + m.month;
+                var date = new Date(m.year, m.month);
+                titleElem.textContent = dateTimeFormatter.format(date);
             });
 
             this._currentMonth = { year: 2015, month: 7 };
