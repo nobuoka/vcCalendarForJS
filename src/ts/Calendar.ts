@@ -94,7 +94,6 @@ module VC.UI.Calendar {
                     time: Date.now(),
                 });
                 var onPointerMove = (evt: PointerEvent) => {
-                    console.log("move");
                     var y = evt.screenY;
                     var t = Date.now();
                     tracker.addPoint({ position: y, time: t });
@@ -408,7 +407,6 @@ module VC.UI.Calendar {
             scrollWindowElem.style.position = "relative";
             this.element.addEventListener("mousewheel", (evt) => {
                 var delta = Math.max(-1, Math.min(1,(evt.wheelDelta || -evt.detail)));
-                console.log(delta);
                 this._updateScrollableViewPosition(delta * 30);
             }, false);
             this._scrollableViewManager = new ScrollableViewManager(height);
