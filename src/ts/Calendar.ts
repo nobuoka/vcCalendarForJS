@@ -121,46 +121,40 @@ module VC.UI.Calendar {
 
     }
 
-    interface Month {
+    interface MonthYear {
         year: number;
         month: number;
     }
 
-    function createPrevMonth(month: Month): Month {
-        var y = month.year;
-        var m = month.month - 1;
-        if (m < 1) {
-            m = 12;
-            y -= 1;
+    function createPrevMonthYear(my: MonthYear): MonthYear {
+        var year = my.year;
+        var month = my.month - 1;
+        if (month < 1) {
+            month = 12;
+            year -= 1;
         }
-        return {
-            year: y,
-            month: m,
-        };
+        return { year, month };
     }
 
-    function createNextMonth(month: Month): Month {
-        var y = month.year;
-        var m = month.month + 1;
-        if (12 < m) {
-            m = 1;
-            y += 1;
+    function createNextMonthYear(my: MonthYear): MonthYear {
+        var year = my.year;
+        var month = my.month + 1;
+        if (12 < month) {
+            month = 1;
+            year += 1;
         }
-        return {
-            year: y,
-            month: m,
-        };
+        return { year, month };
     }
 
-    function createDate(month: Month): Date {
-        return new Date(month.year, month.month - 1);
+    function createDate(my: MonthYear): Date {
+        return new Date(my.year, my.month - 1);
     }
 
     class MonthViewPool {
     }
 
     class MonthView {
-        month: Month;
+        monthYear: MonthYear;
         top: number;
         heightForNextMonth: number;
         fullHeight: number;
@@ -169,13 +163,13 @@ module VC.UI.Calendar {
         private _cellHeight = 48;
         private _cellWidth = 48;
 
-        constructor(m: Month) {
+        constructor(my: MonthYear) {
             var elem = document.createElement("div");
             elem.style.position = "relative";
             elem.classList.add("vc-month");
 
             this.element = elem;
-            this.month = m;
+            this.monthYear = my;
             this.top = 0;
 
             this._setupDayElements();
@@ -187,9 +181,9 @@ module VC.UI.Calendar {
         private _setupDayElements(): void {
             var f = document.createDocumentFragment();
 
-            var nextMonthDate = createDate(createNextMonth(this.month));
+            var nextMonthDate = createDate(createNextMonthYear(this.monthYear));
             var lastDate = new Date(nextMonthDate.getTime() - 1).getDate();
-            var firstDay = createDate(this.month).getDay();
+            var firstDay = createDate(this.monthYear).getDay();
 
             var row = 0;
             var col = firstDay;
@@ -275,8 +269,8 @@ module VC.UI.Calendar {
             this._top = pos;
         }
 
-        initialize(month: Month): void {
-            var monthView = new MonthView(month);
+        initialize(monthYear: MonthYear): void {
+            var monthView = new MonthView(monthYear);
             this.pushMonthView(monthView);
             this._addOrRemoveMonthesIfNecessary();
 
@@ -362,7 +356,7 @@ module VC.UI.Calendar {
             // If there is no invisible month on the top, the `MonthView` is added.
             while (this._monthes.length < 2 || 0 <= this.getNthMonthViewTopPosition(1)) {
                 var firstMonthView = this.getFirstMonthView();
-                var month = createPrevMonth(firstMonthView.month);
+                var month = createPrevMonthYear(firstMonthView.monthYear);
                 var addedMonthView = new MonthView(month);
                 this.unshiftMonthView(addedMonthView);
             }
@@ -373,7 +367,7 @@ module VC.UI.Calendar {
             // If there is no invisible month on the bottom, the `MonthView` is added.
             while (this._monthes.length < 2 || this.getNthMonthViewTopPositionFromTheLast(0) < this._visibleHeight) {
                 var lastMonth = this.getLastMonthView();
-                var month = createNextMonth(lastMonth.month);
+                var month = createNextMonthYear(lastMonth.monthYear);
                 var addedMonthView = new MonthView(month);
                 this.pushMonthView(addedMonthView);
             }
@@ -388,7 +382,7 @@ module VC.UI.Calendar {
 
         element: HTMLElement;
         private _scrollableViewManager: ScrollableViewManager;
-        private _currentMonth: Month;
+        private _currentMonth: MonthYear;
 
         constructor(elem: HTMLElement) {
             var height = 300;
@@ -417,7 +411,7 @@ module VC.UI.Calendar {
 
             var dateTimeFormatter = new Windows.Globalization.DateTimeFormatting.DateTimeFormatter("month year");
             this._scrollableViewManager.setOnCurrentMonthViewChangeListner((target) => {
-                var m = target.currentMonthView.month;
+                var m = target.currentMonthView.monthYear;
                 var date = createDate(m);
                 titleElem.textContent = dateTimeFormatter.format(date);
             });
